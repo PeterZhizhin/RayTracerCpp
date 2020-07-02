@@ -1,0 +1,5 @@
+[requires]
+catch2/2.11.0
+fmt/6.2.0
+spdlog/1.5.0
+abseil/20200225.2
