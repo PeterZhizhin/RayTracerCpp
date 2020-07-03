@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN // This tells the catch header to generate a main
 
 #include <catch2/catch.hpp>
+#include <cmath>
 #include "vec3.h"
 
 using ray_tracer::vector::Vec3;
@@ -118,4 +119,12 @@ TEST_CASE("Vec3 casting to int returns expected int", "[vec3]") {
     REQUIRE(result[0] == 0);
     REQUIRE(result[1] == 127);
     REQUIRE(result[2] == 255);
+}
+
+TEST_CASE("Vec3 unit for (1 -1 1) returns ~(0.57735 -0.57735 0.57735)", "[vec3]") {
+    Vec3 a{1.0f, -1.0f, 1.0f};
+    auto unit_a = a.unit();
+    REQUIRE(std::abs(unit_a[0] - 0.57735f) < 1e-5f);
+    REQUIRE(std::abs(unit_a[1] + 0.57735f) < 1e-5f);
+    REQUIRE(std::abs(unit_a[2] - 0.57735f) < 1e-5f);
 }

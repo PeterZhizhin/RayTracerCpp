@@ -20,6 +20,18 @@ namespace ray_tracer::vector {
 
         constexpr Vec3Template() : Vec3Template(0, 0, 0) {}
 
+        [[nodiscard]] constexpr Float x() const noexcept {
+            return data_[0];
+        }
+
+        [[nodiscard]] constexpr Float y() const noexcept {
+            return data_[1];
+        }
+
+        [[nodiscard]] constexpr Float z() const noexcept {
+            return data_[2];
+        }
+
         [[nodiscard]] Vec3Template operator-() const noexcept {
             return Vec3Template{-data_[0], -data_[1], -data_[2]};
         }
@@ -82,6 +94,10 @@ namespace ray_tracer::vector {
             const auto mult_val = std::nextafter(max_value, -std::numeric_limits<decltype(max_value)>::infinity());
             return {static_cast<OtherType>(mult_val * data_[0]), static_cast<OtherType>(mult_val * data_[1]),
                     static_cast<OtherType>(mult_val * data_[2])};
+        }
+
+        [[nodiscard]] constexpr Vec3Template unit() const noexcept {
+            return *this / length();
         }
 
     private:
