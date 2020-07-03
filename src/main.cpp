@@ -24,9 +24,29 @@ static constexpr color_range_t red_range = {0.0, 1.0};
 static constexpr color_range_t green_range = {0.0, 1.0};
 static constexpr color_range_t blue_range = {0.25, 0.25};
 
-[[nodiscard]] constexpr ray_tracer::vector::Color3 get_ray_color(const ray_tracer::ray::Ray &ray) noexcept {
-    auto unit_ray_direction = ray.direction().unit();
-    auto t = 0.5f * (unit_ray_direction.y() + 1.0f);
+[[nodiscard]] constexpr float hits_sphere(const Point3 &sphere_center, float radius, const Ray &ray) {
+    const auto origin_minus_center = ray.origin() - sphere_center;
+    const auto quadratic_a = ray.direction().length2();
+    const auto quadratic_half_b = origin_minus_center.dot_product(ray.direction());
+    const auto quadratic_c = origin_minus_center.length2() - radius * radius;
+    const auto discriminant = quadratic_half_b * quadratic_half_b - quadratic_a * quadratic_c;
+    if (discriminant < 0) {
+        return -1.0f;
+    } else {
+        return (-quadratic_half_b - std::sqrt(discriminant)) / quadratic_a;
+    }
+}
+
+[[nodiscard]] constexpr Color3 get_ray_color(const Ray &ray) noexcept {
+    Point3 sphere_center{0.0f, 0.0f, -1.0f};
+    const auto sphere_hit_t = hits_sphere(sphere_center, 0.5f, ray);
+    if (sphere_hit_t > 0) {
+        const auto contact_point = ray.at(sphere_hit_t);
+        const auto normal_vector = (contact_point - sphere_center).unit();
+        return (normal_vector + Vec3{1.0f, 1.0f, 1.0f}) * 0.5f;
+    }
+    const auto unit_ray_direction = ray.direction().unit();
+    const auto t = 0.5f * (unit_ray_direction.y() + 1.0f);
     return (1.0f - t) * Color3{1.0f, 1.0f, 1.0f} + t * Color3{0.5f, 0.7f, 1.0f};
 }
 
@@ -41,7 +61,7 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height) noexce
 
     Point3 origin{0.0f, 0.0f, 0.0f};
     Vec3 horizontal{viewport_width, 0.0f, 0.0f};
-    Vec3 vertical{0.0f, viewport_height, 0.0f};
+    Vec3 vertical{0.0f, -viewport_height, 0.0f};
 
     auto lower_left_corner = origin - horizontal / 2.0f - vertical / 2.0f - Vec3{0.0, 0.0, focal_length};
 
