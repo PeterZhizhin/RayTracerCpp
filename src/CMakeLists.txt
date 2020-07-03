@@ -11,7 +11,7 @@ target_link_libraries(vec3_test PRIVATE project_warnings project_options CONAN_P
 add_executable(ray_test ray_test.cpp vec3.h ray.h)
 target_link_libraries(ray_test PRIVATE project_warnings project_options CONAN_PKG::catch2)
 
-add_executable(RayTracerCpp main.cpp vec3.h image.h image.cpp ray.h)
+add_executable(RayTracerCpp main.cpp vec3.h image.h image.cpp ray.h hittable.h sphere.cpp sphere.h)
 conan_target_link_libraries(
         RayTracerCpp
         PRIVATE project_options

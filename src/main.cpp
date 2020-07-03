@@ -9,6 +9,7 @@
 #include "image.h"
 #include "vec3.h"
 #include "ray.h"
+#include "sphere.h"
 
 ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
@@ -18,32 +19,14 @@ using ray_tracer::ray::Ray;
 using ray_tracer::vector::Color3;
 using ray_tracer::vector::Point3;
 using ray_tracer::vector::Vec3;
+using ray_tracer::geometry::Sphere;
 
-using color_range_t = std::array<float, 2>;
-static constexpr color_range_t red_range = {0.0, 1.0};
-static constexpr color_range_t green_range = {0.0, 1.0};
-static constexpr color_range_t blue_range = {0.25, 0.25};
-
-[[nodiscard]] constexpr float hits_sphere(const Point3 &sphere_center, float radius, const Ray &ray) {
-    const auto origin_minus_center = ray.origin() - sphere_center;
-    const auto quadratic_a = ray.direction().length2();
-    const auto quadratic_half_b = origin_minus_center.dot_product(ray.direction());
-    const auto quadratic_c = origin_minus_center.length2() - radius * radius;
-    const auto discriminant = quadratic_half_b * quadratic_half_b - quadratic_a * quadratic_c;
-    if (discriminant < 0) {
-        return -1.0f;
-    } else {
-        return (-quadratic_half_b - std::sqrt(discriminant)) / quadratic_a;
-    }
-}
-
-[[nodiscard]] constexpr Color3 get_ray_color(const Ray &ray) noexcept {
-    Point3 sphere_center{0.0f, 0.0f, -1.0f};
-    const auto sphere_hit_t = hits_sphere(sphere_center, 0.5f, ray);
-    if (sphere_hit_t > 0) {
-        const auto contact_point = ray.at(sphere_hit_t);
-        const auto normal_vector = (contact_point - sphere_center).unit();
-        return (normal_vector + Vec3{1.0f, 1.0f, 1.0f}) * 0.5f;
+[[nodiscard]] Color3 get_ray_color(const Ray &ray) noexcept {
+    Sphere sphere{{0.0f, 0.0f, -1.0f}, 0.5f};
+    auto hit_or_none = sphere.hit(ray, 0, 100);
+    if (hit_or_none) {
+        const auto& hit_record = hit_or_none.value();
+        return (hit_record.normal_at_hit + Vec3{1.0f, 1.0f, 1.0f}) * 0.5f;
     }
     const auto unit_ray_direction = ray.direction().unit();
     const auto t = 0.5f * (unit_ray_direction.y() + 1.0f);
