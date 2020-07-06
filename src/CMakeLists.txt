@@ -28,6 +28,8 @@ target_link_libraries(hittable_test PRIVATE project_warnings project_options hit
 
 add_library(sphere sphere.h sphere.cpp)
 target_link_libraries(sphere vec3 ray hittable)
+add_executable(sphere_test sphere_test.cpp)
+target_link_libraries(sphere_test PRIVATE project_warnings project_options sphere CONAN_PKG::catch2)
 
 add_library(hittable_list hittable_list.h hittable_list.cpp)
 target_link_libraries(hittable_list ray)
