@@ -1,15 +1,16 @@
-#include <absl/flags/flag.h>     // for GetFlag, ABSL_FLAG
-#include <absl/flags/parse.h>    // for ParseCommandLine
-#include <array>                 // for array
-#include <cmath>                 // for lerp
-#include <cstdint>               // for uint32_t
+#include <absl/flags/flag.h>
+#include <absl/flags/parse.h>
+#include <cstdint>
 #include <exception>
-#include <spdlog/spdlog.h>       // for error
-#include <string>                // for string, allocator, basic_string
+#include <fmt/format.h>
+#include <optional>
+#include <spdlog/spdlog.h>
+#include <string>
+#include "hittable.h"
 #include "image.h"
-#include "vec3.h"
 #include "ray.h"
 #include "sphere.h"
+#include "vec3.h"
 
 ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
@@ -25,7 +26,7 @@ using ray_tracer::geometry::Sphere;
     Sphere sphere{{0.0f, 0.0f, -1.0f}, 0.5f};
     auto hit_or_none = sphere.hit(ray, 0, 100);
     if (hit_or_none) {
-        const auto& hit_record = hit_or_none.value();
+        const auto &hit_record = hit_or_none.value();
         return (hit_record.normal_at_hit + Vec3{1.0f, 1.0f, 1.0f}) * 0.5f;
     }
     const auto unit_ray_direction = ray.direction().unit();

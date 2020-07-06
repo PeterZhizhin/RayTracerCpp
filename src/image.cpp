@@ -1,5 +1,6 @@
 #include "image.h"
 
+#include <cstdint>
 #include <fmt/ostream.h>
 #include <fstream>
 #include <string>
@@ -8,7 +9,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "stb_image_write.h"
-
 #include "vec3.h"
 
 namespace ray_tracer {

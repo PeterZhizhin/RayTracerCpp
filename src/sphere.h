@@ -7,6 +7,8 @@
 
 #include <optional>
 #include "hittable.h"
+#include "vec3.h"
+#include "ray.h"
 
 namespace ray_tracer::geometry {
     class Sphere : public Hittable {
@@ -15,7 +17,7 @@ namespace ray_tracer::geometry {
 
         Sphere(const vector::Point3 &center, float radius) : center_(center), radius_(radius) {}
 
-        virtual ~Sphere() override {}
+        virtual ~Sphere() override = default;
 
         [[nodiscard]] std::optional<HitRecord>
         hit(const ray::Ray &ray, float t_min, float t_max) const noexcept override;

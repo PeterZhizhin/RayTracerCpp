@@ -4,9 +4,10 @@
 
 #include "sphere.h"
 
+#include <initializer_list>
 #include <optional>
-#include "vec3.h"
 #include "ray.h"
+#include "vec3.h"
 
 namespace ray_tracer::geometry {
 

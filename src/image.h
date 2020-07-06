@@ -1,10 +1,10 @@
 #ifndef RAYTRACERPROJECT_IMAGE_H
 #define RAYTRACERPROJECT_IMAGE_H
 
+#include <cstddef>
+#include <stdexcept>
 #include <string>
-#include <tuple>
 #include <vector>
-
 #include "vec3.h"
 
 namespace ray_tracer {
@@ -15,7 +15,7 @@ namespace ray_tracer {
     class Image {
     public:
         Image(size_t height, size_t width) : buffer_{height * width}, height_{height}, width_{width} {
-            if (buffer_.size() == 0) {
+            if (buffer_.empty()) {
                 throw std::runtime_error("Trying to initialize image with size of 0");
             }
         }
