@@ -14,7 +14,7 @@ namespace ray_tracer {
 
     class Image {
     public:
-        Image(int height, int width) : buffer_(height * width), height_(height), width_(width) {
+        Image(size_t height, size_t width) : buffer_{height * width}, height_{height}, width_{width} {
             if (buffer_.size() == 0) {
                 throw std::runtime_error("Trying to initialize image with size of 0");
             }
@@ -28,8 +28,8 @@ namespace ray_tracer {
         void save_png(const std::string &output_file);
 
         std::vector<vector::Color3> buffer_;
-        int height_;
-        int width_;
+        size_t height_;
+        size_t width_;
     };
 }
 

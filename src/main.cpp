@@ -50,8 +50,8 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height) noexce
 
     for (uint32_t height = 0; height != image_height; ++height) {
         for (uint32_t width = 0; width != image_width; ++width) {
-            auto u = static_cast<float>(width) / (image_width - 1);
-            auto v = static_cast<float>(height) / (image_height - 1);
+            auto u = static_cast<float>(width) / static_cast<float>(image_width - 1);
+            auto v = static_cast<float>(height) / static_cast<float>(image_height - 1);
 
             Ray uv_ray{origin, lower_left_corner + u * horizontal + v * vertical};
             result[height][width] = get_ray_color(uv_ray);

@@ -19,12 +19,12 @@ namespace ray_tracer::geometry {
         const auto discriminant = quadratic_half_b * quadratic_half_b - quadratic_a * quadratic_c;
         if (discriminant >= 0) {
             const auto sqrt_discriminant = std::sqrt(discriminant);
-            for (const auto sign : {-1, +1}) {
+            for (const auto sign : {-1.0f, +1.0f}) {
                 const auto result_t = (-quadratic_half_b + sign * sqrt_discriminant) / quadratic_a;
                 if (t_min <= result_t && result_t <= t_max) {
                     auto hit_point = ray.at(result_t);
                     auto normal_at_hit = (hit_point - center_).unit();
-                    return Sphere::HitRecord{.hit_point = hit_point, .normal_at_hit = normal_at_hit, .ray_t = result_t};
+                    return Sphere::HitRecord{hit_point, ray, result_t, normal_at_hit};
                 }
             }
         }

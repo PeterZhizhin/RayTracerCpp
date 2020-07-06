@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 20)
 
 # Set the project name to your project name, my project isn't very descriptive
-project(RayTracerProject CXX)
+project(RayTracerProject)
 include(cmake/StandardProjectSettings.cmake)
 include(cmake/PreventInSourceBuilds.cmake)
 
