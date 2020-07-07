@@ -6,6 +6,7 @@
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <string>
+#include "camera.h"
 #include "hittable.h"
 #include "hittable_list.h"
 #include "image.h"
@@ -24,6 +25,7 @@ using ray_tracer::ray::Ray;
 using ray_tracer::vector::Color3;
 using ray_tracer::vector::Point3;
 using ray_tracer::vector::Vec3;
+using ray_tracer::camera::Camera;
 
 [[nodiscard]] Color3 get_ray_color(const Ray &ray, const Hittable& hittable) noexcept {
     auto hit_or_none = hittable.hit(ray, 0, 100);
@@ -40,16 +42,7 @@ using ray_tracer::vector::Vec3;
 get_simple_image(const uint32_t image_width, const uint32_t image_height) noexcept {
     ray_tracer::Image result(image_height, image_width);
 
-    const auto aspect_ratio = static_cast<float>(image_width) / static_cast<float>(image_height);
-    const auto viewport_height = 2.0f;
-    const auto viewport_width = aspect_ratio * viewport_height;
-    const auto focal_length = 1.0f;
-
-    Point3 origin{0.0f, 0.0f, 0.0f};
-    Vec3 horizontal{viewport_width, 0.0f, 0.0f};
-    Vec3 vertical{0.0f, -viewport_height, 0.0f};
-
-    auto lower_left_corner = origin - horizontal / 2.0f - vertical / 2.0f - Vec3{0.0, 0.0, focal_length};
+    Camera camera(image_width, image_height);
 
     HittableList hittable_list;
     hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f));
@@ -58,9 +51,9 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height) noexce
     for (uint32_t height = 0; height != image_height; ++height) {
         for (uint32_t width = 0; width != image_width; ++width) {
             auto u = static_cast<float>(width) / static_cast<float>(image_width - 1);
-            auto v = static_cast<float>(height) / static_cast<float>(image_height - 1);
+            auto v = 1.0f - static_cast<float>(height) / static_cast<float>(image_height - 1);
 
-            Ray uv_ray{origin, lower_left_corner + u * horizontal + v * vertical};
+            auto uv_ray = camera.get_ray(u, v);
             result[height][width] = get_ray_color(uv_ray, hittable_list);
         }
     }
