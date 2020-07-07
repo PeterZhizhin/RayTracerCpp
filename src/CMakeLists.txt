@@ -39,6 +39,8 @@ target_link_libraries(hittable_list_test PRIVATE
         hittable_list hittable ray vec3
         CONAN_PKG::catch2 CONAN_PKG::trompeloeil)
 
+add_library(random random.cpp random.h)
+
 add_library(camera camera.cpp camera.h)
 add_executable(camera_test camera_test.cpp)
 target_link_libraries(camera_test PRIVATE project_warnings project_options camera CONAN_PKG::catch2)
@@ -50,6 +52,7 @@ target_link_libraries(
         camera
         hittable_list
         image
+        random
         ray
         sphere
         vec3

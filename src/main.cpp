@@ -13,10 +13,12 @@
 #include "ray.h"
 #include "sphere.h"
 #include "vec3.h"
+#include "random.h"
 
 ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
 ABSL_FLAG(uint32_t, height, 256, "Output image height");
+ABSL_FLAG(uint32_t, rays_per_pixel, 8, "Number of rays per pixel (for antialiasing)");
 
 using ray_tracer::geometry::Hittable;
 using ray_tracer::geometry::HittableList;
@@ -27,7 +29,7 @@ using ray_tracer::vector::Point3;
 using ray_tracer::vector::Vec3;
 using ray_tracer::camera::Camera;
 
-[[nodiscard]] Color3 get_ray_color(const Ray &ray, const Hittable& hittable) noexcept {
+[[nodiscard]] Color3 get_ray_color(const Ray &ray, const Hittable &hittable) noexcept {
     auto hit_or_none = hittable.hit(ray, 0, 100);
     if (hit_or_none) {
         const auto &hit_record = hit_or_none.value();
@@ -39,7 +41,7 @@ using ray_tracer::camera::Camera;
 }
 
 [[nodiscard]] auto
-get_simple_image(const uint32_t image_width, const uint32_t image_height) noexcept {
+get_simple_image(const uint32_t image_width, const uint32_t image_height, const uint32_t rays_per_pixel) noexcept {
     ray_tracer::Image result(image_height, image_width);
 
     Camera camera(image_width, image_height);
@@ -48,13 +50,20 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height) noexce
     hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f));
     hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f));
 
+    ray_tracer::random::Random random;
+
     for (uint32_t height = 0; height != image_height; ++height) {
         for (uint32_t width = 0; width != image_width; ++width) {
-            auto u = static_cast<float>(width) / static_cast<float>(image_width - 1);
-            auto v = 1.0f - static_cast<float>(height) / static_cast<float>(image_height - 1);
+            Color3 colors_sum;
+            for (uint32_t ray_no = 0; ray_no != rays_per_pixel; ++ray_no) {
+                auto u = (static_cast<float>(width) + random.standard_uniform()) / static_cast<float>(image_width - 1);
+                auto v = 1.0f - (static_cast<float>(height) + random.standard_uniform()) / static_cast<float>(
+                        image_height - 1);
 
-            auto uv_ray = camera.get_ray(u, v);
-            result[height][width] = get_ray_color(uv_ray, hittable_list);
+                auto uv_ray = camera.get_ray(u, v);
+                colors_sum += get_ray_color(uv_ray, hittable_list);
+            }
+            result[height][width] = colors_sum / static_cast<float>(rays_per_pixel);
         }
     }
     return result;
@@ -70,6 +79,7 @@ int main(int argc, char *argv[]) {
 
     const auto width = absl::GetFlag(FLAGS_width);
     const auto height = absl::GetFlag(FLAGS_height);
+    const auto rays_per_pixel = absl::GetFlag(FLAGS_rays_per_pixel);
     if (width == 0 || width > 2048) {
         spdlog::error("Image width is invalid (valid range is (0; 2048]), got {}", width);
         return 1;
@@ -78,9 +88,13 @@ int main(int argc, char *argv[]) {
         spdlog::error("Image height is invalid (valid range is (0; 2048]), got {}", height);
         return 1;
     }
+    if (rays_per_pixel == 0) {
+        spdlog::error("Number of rays is invalid (valid range is anything >0), got {}", rays_per_pixel);
+        return 1;
+    }
 
     try {
-        auto image = get_simple_image(width, height);
+        auto image = get_simple_image(width, height, rays_per_pixel);
         image.save_image(output_file_path, ray_tracer::OutputFormat::PNG);
     } catch (const std::exception &exception) {
         spdlog::error("Error on saving image:\n{}\n", exception.what());
