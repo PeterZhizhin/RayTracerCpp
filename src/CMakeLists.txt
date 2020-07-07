@@ -5,6 +5,7 @@ else ()
   include(${CONAN_CATCH2_ROOT}/lib/cmake/Catch2/Catch.cmake)
 endif ()
 
+add_subdirectory(tqdm)
 
 add_library(image image.cpp image.h)
 target_link_libraries(image CONAN_PKG::fmt CONAN_PKG::stb)
@@ -56,6 +57,7 @@ target_link_libraries(
         ray
         sphere
         vec3
+        tqdm
         project_warnings
         CONAN_PKG::abseil
         CONAN_PKG::fmt

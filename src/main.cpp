@@ -6,14 +6,17 @@
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <string>
+
+#include "tqdm/tqdm.h"
+
 #include "camera.h"
 #include "hittable.h"
 #include "hittable_list.h"
 #include "image.h"
+#include "random.h"
 #include "ray.h"
 #include "sphere.h"
 #include "vec3.h"
-#include "random.h"
 
 ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
@@ -64,7 +67,9 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
 
     Random random;
 
+    tqdm::tqdm bar;
     for (uint32_t height = 0; height != image_height; ++height) {
+        bar.progress(static_cast<int>(height), static_cast<int>(image_height));
         for (uint32_t width = 0; width != image_width; ++width) {
             Color3 colors_sum;
             for (uint32_t ray_no = 0; ray_no != rays_per_pixel; ++ray_no) {
@@ -81,6 +86,7 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
             result[height][width] = gamma_corrected;
         }
     }
+    bar.finish();
     return result;
 }
 
