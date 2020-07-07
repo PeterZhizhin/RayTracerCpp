@@ -33,6 +33,11 @@ target_link_libraries(sphere_test PRIVATE project_warnings project_options spher
 
 add_library(hittable_list hittable_list.h hittable_list.cpp)
 target_link_libraries(hittable_list ray)
+add_executable(hittable_list_test hittable_list_test.cpp)
+target_link_libraries(hittable_list_test PRIVATE
+        project_warnings project_options
+        hittable_list hittable ray vec3
+        CONAN_PKG::catch2 CONAN_PKG::trompeloeil)
 
 add_executable(RayTracerCpp main.cpp)
 target_link_libraries(
