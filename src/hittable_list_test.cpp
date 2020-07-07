@@ -83,20 +83,21 @@ TEST_CASE("Hittable list returns false when added object returns nullopt",
 }
 
 TEST_CASE(
-        "Hittable list returns HitRecord when 2nd added object returns record and 1st return nullopt, 3rd never called",
+        "Hittable list returns HitRecord when 2nd added object returns record and 1st, 3rd return nullopt",
         "[hittable_list]") {
     using trompeloeil::_;
     auto hittable1 = std::make_unique<MockHittable>();
     auto hittable2 = std::make_unique<MockHittable>();
     auto hittable3 = std::make_unique<MockHittable>();
-    REQUIRE_CALL(*hittable1, hit(_, _, _))
+    ALLOW_CALL(*hittable1, hit(_, _, _))
     .RETURN(std::nullopt);
 
     Hittable::HitRecord test_record{Point3{}, Ray{Point3{}, Vec3{}}, 0.5f, Vec3{}};
     REQUIRE_CALL(*hittable2, hit(_, _, _))
     .RETURN(test_record);
 
-    FORBID_CALL(*hittable3, hit(_, _, _));
+    ALLOW_CALL(*hittable3, hit(_, _, _))
+    .RETURN(std::nullopt);
 
     HittableList hittable_list;
     hittable_list.add(std::move(hittable1));
@@ -105,4 +106,38 @@ TEST_CASE(
 
     auto result = hittable_list.hit(Ray{Point3{}, Vec3{}}, 0.0f, 1000.0f);
     REQUIRE(result.has_value());
+}
+
+TEST_CASE(
+        "Hittable list returns closest HitRecord when 3 objects return hit records, 3rd closest",
+        "[hittable_list]") {
+    using trompeloeil::_;
+    auto hittable1 = std::make_unique<MockHittable>();
+    auto hittable2 = std::make_unique<MockHittable>();
+    auto hittable3 = std::make_unique<MockHittable>();
+
+    // The record is very far
+    Hittable::HitRecord test_record1{Point3{}, Ray{Point3{}, Vec3{}}, 100.0f, Vec3{}};
+    // The record is a very close
+    Hittable::HitRecord test_record2{Point3{}, Ray{Point3{}, Vec3{}}, 0.5f, Vec3{}};
+    // The record is the closest
+    Hittable::HitRecord test_record3{Point3{}, Ray{Point3{}, Vec3{}}, 0.01f, Vec3{}};
+
+    ALLOW_CALL(*hittable1, hit(_, _, _))
+    .RETURN(test_record1);
+
+    ALLOW_CALL(*hittable2, hit(_, _, _))
+    .RETURN(test_record2);
+
+    ALLOW_CALL(*hittable3, hit(_, _, _))
+    .RETURN(test_record3);
+
+    HittableList hittable_list;
+    hittable_list.add(std::move(hittable1));
+    hittable_list.add(std::move(hittable2));
+    hittable_list.add(std::move(hittable3));
+
+    auto result = hittable_list.hit(Ray{Point3{}, Vec3{}}, 0.0f, 1000.0f);
+    REQUIRE(result.has_value());
+    REQUIRE(result->ray_t == 0.01f);
 }

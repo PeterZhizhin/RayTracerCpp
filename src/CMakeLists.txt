@@ -43,10 +43,11 @@ add_executable(RayTracerCpp main.cpp)
 target_link_libraries(
         RayTracerCpp
         PRIVATE project_options
+        hittable_list
         image
-        vec3
         ray
         sphere
+        vec3
         project_warnings
         CONAN_PKG::abseil
         CONAN_PKG::fmt
