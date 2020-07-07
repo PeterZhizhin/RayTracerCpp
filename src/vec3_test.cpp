@@ -128,3 +128,27 @@ TEST_CASE("Vec3 unit for (1 -1 1) returns ~(0.57735 -0.57735 0.57735)", "[vec3]"
     REQUIRE(std::abs(unit_a[1] + 0.57735f) < 1e-5f);
     REQUIRE(std::abs(unit_a[2] - 0.57735f) < 1e-5f);
 }
+
+TEST_CASE("Vec3 equality operator returns true on equal elements", "[vec3]") {
+    Vec3 a{1.0f, -1.0f, 1.0f};
+    Vec3 b{1.0f, -1.0f, 1.0f};
+    REQUIRE(a == b);
+}
+
+TEST_CASE("Vec3 equality operator returns false on unequal elements", "[vec3]") {
+    Vec3 a{1.0f, -1.0f, 1.0f};
+    Vec3 b{1.0f, -1.0f, 0.0f};
+    REQUIRE_FALSE(a == b);
+}
+
+TEST_CASE("Vec3 different vectors operator != returns true", "[vec3]") {
+    Vec3 a{1.0f, -1.0f, 1.0f};
+    Vec3 b{1.0f, -1.0f, 0.0f};
+    REQUIRE(a != b);
+}
+
+TEST_CASE("Vec3 same vectors operator != returns false", "[vec3]") {
+    Vec3 a{1.0f, -1.0f, 1.0f};
+    Vec3 b{1.0f, -1.0f, 1.0f};
+    REQUIRE_FALSE(a != b);
+}

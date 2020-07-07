@@ -72,6 +72,14 @@ namespace ray_tracer::vector {
             return *this;
         }
 
+        constexpr bool operator==(const Vec3Template &other) const noexcept {
+            return std::equal(data_.begin(), data_.end(), other.data_.begin(), other.data_.end());
+        }
+
+        constexpr bool operator!=(const Vec3Template &other) const noexcept {
+            return !(*this == other);
+        }
+
         [[nodiscard]] constexpr Float dot_product(const Vec3Template<Float> &other) const noexcept {
             Float result = 0;
             for (size_t i = 0; i != size_; ++i) {

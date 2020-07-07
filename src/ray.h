@@ -27,6 +27,14 @@ namespace ray_tracer::ray {
             return origin_ + t * direction_;
         }
 
+        [[nodiscard]] constexpr bool operator==(const Ray& ray) const noexcept {
+            return (origin_ == ray.origin_) && (direction_ == ray.direction_);
+        }
+
+        [[nodiscard]] constexpr bool operator!=(const Ray& ray) const noexcept {
+            return !(*this == ray);
+        }
+
     private:
         vector::Point3 origin_;
         vector::Vec3 direction_;
