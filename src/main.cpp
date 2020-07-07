@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 #include <string>
 #include "hittable.h"
+#include "hittable_list.h"
 #include "image.h"
 #include "ray.h"
 #include "sphere.h"
@@ -16,15 +17,16 @@ ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
 ABSL_FLAG(uint32_t, height, 256, "Output image height");
 
+using ray_tracer::geometry::Hittable;
+using ray_tracer::geometry::HittableList;
+using ray_tracer::geometry::Sphere;
 using ray_tracer::ray::Ray;
 using ray_tracer::vector::Color3;
 using ray_tracer::vector::Point3;
 using ray_tracer::vector::Vec3;
-using ray_tracer::geometry::Sphere;
 
-[[nodiscard]] Color3 get_ray_color(const Ray &ray) noexcept {
-    Sphere sphere{{0.0f, 0.0f, -1.0f}, 0.5f};
-    auto hit_or_none = sphere.hit(ray, 0, 100);
+[[nodiscard]] Color3 get_ray_color(const Ray &ray, const Hittable& hittable) noexcept {
+    auto hit_or_none = hittable.hit(ray, 0, 100);
     if (hit_or_none) {
         const auto &hit_record = hit_or_none.value();
         return (hit_record.normal_at_hit + Vec3{1.0f, 1.0f, 1.0f}) * 0.5f;
@@ -49,13 +51,17 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height) noexce
 
     auto lower_left_corner = origin - horizontal / 2.0f - vertical / 2.0f - Vec3{0.0, 0.0, focal_length};
 
+    HittableList hittable_list;
+    hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f));
+    hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f));
+
     for (uint32_t height = 0; height != image_height; ++height) {
         for (uint32_t width = 0; width != image_width; ++width) {
             auto u = static_cast<float>(width) / static_cast<float>(image_width - 1);
             auto v = static_cast<float>(height) / static_cast<float>(image_height - 1);
 
             Ray uv_ray{origin, lower_left_corner + u * horizontal + v * vertical};
-            result[height][width] = get_ray_color(uv_ray);
+            result[height][width] = get_ray_color(uv_ray, hittable_list);
         }
     }
     return result;
