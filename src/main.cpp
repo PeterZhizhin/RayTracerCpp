@@ -19,6 +19,7 @@ ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
 ABSL_FLAG(uint32_t, height, 256, "Output image height");
 ABSL_FLAG(uint32_t, rays_per_pixel, 8, "Number of rays per pixel (for antialiasing)");
+ABSL_FLAG(uint32_t, max_depth, 50, "Maximum depth for tracing rays");
 
 using ray_tracer::geometry::Hittable;
 using ray_tracer::geometry::HittableList;
@@ -28,12 +29,22 @@ using ray_tracer::vector::Color3;
 using ray_tracer::vector::Point3;
 using ray_tracer::vector::Vec3;
 using ray_tracer::camera::Camera;
+using ray_tracer::random::Random;
 
-[[nodiscard]] Color3 get_ray_color(const Ray &ray, const Hittable &hittable) noexcept {
-    auto hit_or_none = hittable.hit(ray, 0, 100);
+[[nodiscard]] Color3
+get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const uint32_t depth_quota) noexcept {
+    if (depth_quota == 0) {
+        // Cannot go further anymore.
+        return Color3{};
+    }
+
+    auto hit_or_none = hittable.hit(ray, 1e-4f, 100);
     if (hit_or_none) {
         const auto &hit_record = hit_or_none.value();
-        return (hit_record.normal_at_hit + Vec3{1.0f, 1.0f, 1.0f}) * 0.5f;
+        auto random_unit_sphere = random.unit_sphere_uniform();
+        auto target = hit_record.hit_point + hit_record.normal_at_hit + random_unit_sphere;
+        return 0.5f * get_ray_color(Ray{hit_record.hit_point, target - hit_record.hit_point}, hittable, random,
+                                    depth_quota - 1);
     }
     const auto unit_ray_direction = ray.direction().unit();
     const auto t = 0.5f * (unit_ray_direction.y() + 1.0f);
@@ -41,7 +52,8 @@ using ray_tracer::camera::Camera;
 }
 
 [[nodiscard]] auto
-get_simple_image(const uint32_t image_width, const uint32_t image_height, const uint32_t rays_per_pixel) noexcept {
+get_simple_image(const uint32_t image_width, const uint32_t image_height, const uint32_t rays_per_pixel,
+                 const uint32_t max_ray_tracing_depth) noexcept {
     ray_tracer::Image result(image_height, image_width);
 
     Camera camera(image_width, image_height);
@@ -50,7 +62,7 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
     hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f));
     hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f));
 
-    ray_tracer::random::Random random;
+    Random random;
 
     for (uint32_t height = 0; height != image_height; ++height) {
         for (uint32_t width = 0; width != image_width; ++width) {
@@ -61,9 +73,12 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
                         image_height - 1);
 
                 auto uv_ray = camera.get_ray(u, v);
-                colors_sum += get_ray_color(uv_ray, hittable_list);
+                colors_sum += get_ray_color(uv_ray, hittable_list, random, max_ray_tracing_depth);
             }
-            result[height][width] = colors_sum / static_cast<float>(rays_per_pixel);
+            auto non_gamma_corrected = colors_sum / static_cast<float>(rays_per_pixel);
+            Color3 gamma_corrected{std::sqrt(non_gamma_corrected.x()), std::sqrt(non_gamma_corrected.y()),
+                                   std::sqrt(non_gamma_corrected.z())};
+            result[height][width] = gamma_corrected;
         }
     }
     return result;
@@ -80,6 +95,7 @@ int main(int argc, char *argv[]) {
     const auto width = absl::GetFlag(FLAGS_width);
     const auto height = absl::GetFlag(FLAGS_height);
     const auto rays_per_pixel = absl::GetFlag(FLAGS_rays_per_pixel);
+    const auto max_ray_tracing_depth = absl::GetFlag(FLAGS_max_depth);
     if (width == 0 || width > 2048) {
         spdlog::error("Image width is invalid (valid range is (0; 2048]), got {}", width);
         return 1;
@@ -94,7 +110,7 @@ int main(int argc, char *argv[]) {
     }
 
     try {
-        auto image = get_simple_image(width, height, rays_per_pixel);
+        auto image = get_simple_image(width, height, rays_per_pixel, max_ray_tracing_depth);
         image.save_image(output_file_path, ray_tracer::OutputFormat::PNG);
     } catch (const std::exception &exception) {
         spdlog::error("Error on saving image:\n{}\n", exception.what());
