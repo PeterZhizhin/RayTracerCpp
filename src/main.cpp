@@ -18,6 +18,7 @@
 #include "ray.h"
 #include "sphere.h"
 #include "vec3.h"
+#include "lambertian.h"
 
 ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
@@ -34,19 +35,7 @@ using ray_tracer::vector::Point3;
 using ray_tracer::vector::Vec3;
 using ray_tracer::camera::Camera;
 using ray_tracer::random::Random;
-
-constexpr auto lambertian_reflectance(const Vec3 &normal_at_hit, const Vec3 &random_on_unit_sphere) {
-    auto target_direction = normal_at_hit + random_on_unit_sphere;
-    // color_multiplier = <target / target.length(); normal> = <target; normal> / target.length() =
-    // = <normal + random; normal> / target.length() = (<normal; normal> + <random; normal>) / target.length() =
-    // = [normal.length() == 1, target.length() == sqrt(<target; target>)] =
-    // = (1 + <random; normal>) / sqrt(<normal + random; normal + random>) =
-    // = (1 + <random; normal>) / sqrt(<normal; normal> + 2<normal; random> + <random; random>) =
-    // = [random.length() == 1] = (1 + <random; normal>) / sqrt(1 + 2<normal; random> + 1) =
-    // = (1 + <random; normal>) / sqrt(2) / sqrt(1 + <random; normal>) = sqrt((1 + <random; normal>) / 2)
-    auto color_multiplier = std::sqrt((1 + random_on_unit_sphere.dot_product(normal_at_hit)) / 2.0f);
-    return std::make_pair(target_direction, color_multiplier);
-}
+using ray_tracer::material::LambertianMaterial;
 
 [[nodiscard]] Color3
 get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const uint32_t depth_quota) noexcept {
@@ -58,12 +47,14 @@ get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const ui
     auto hit_or_none = hittable.hit(ray, 1e-4f, 100);
     if (hit_or_none) {
         const auto &hit_record = hit_or_none.value();
-        auto[target_direction, color_multiplier] = lambertian_reflectance(hit_record.normal_at_hit,
-                                                                          random.on_unit_sphere_uniform());
-        Ray target_ray{hit_record.hit_point, target_direction};
-        return color_multiplier * get_ray_color(target_ray, hittable, random,
-                                                depth_quota - 1);
+        const auto scatter_or_none = hit_record.material->scatter(ray, hit_record);
+        if (!scatter_or_none) {
+            return Color3{};
+        }
+        const auto&[target_ray, attenuation] = scatter_or_none.value();
+        return attenuation * get_ray_color(target_ray, hittable, random, depth_quota - 1);
     }
+
     const auto unit_ray_direction = ray.direction().unit();
     const auto t = 0.5f * (unit_ray_direction.y() + 1.0f);
     return (1.0f - t) * Color3{1.0f, 1.0f, 1.0f} + t * Color3{0.5f, 0.7f, 1.0f};
@@ -75,12 +66,14 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
     ray_tracer::Image result(image_height, image_width);
 
     Camera camera(image_width, image_height);
+    Random random;
 
     HittableList hittable_list;
-    hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f));
-    hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f));
-
-    Random random;
+    hittable_list.add(
+            std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f,
+                                     std::make_unique<LambertianMaterial>(Color3{0.8f, 0.0f, 0.0f}, random)));
+    hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f,
+                                               std::make_unique<LambertianMaterial>(Color3{0.8f, 0.8f, 0.0f}, random)));
 
     tqdm::tqdm bar;
     for (uint32_t height = 0; height != image_height; ++height) {

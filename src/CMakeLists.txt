@@ -21,16 +21,26 @@ target_link_libraries(ray vec3)
 add_executable(ray_test ray_test.cpp)
 target_link_libraries(ray_test PRIVATE project_warnings project_options ray CONAN_PKG::catch2)
 
+add_library(material material.h)
+set_target_properties(material PROPERTIES LINKER_LANGUAGE CXX)
+
 add_library(hittable hittable.h)
 set_target_properties(hittable PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(hittable vec3 ray)
+target_link_libraries(material hittable vec3 ray)
+target_link_libraries(hittable vec3 ray material)
+
 add_executable(hittable_test hittable_test.cpp)
 target_link_libraries(hittable_test PRIVATE project_warnings project_options hittable CONAN_PKG::catch2)
 
+add_library(absorbing absorbing.cpp absorbing.h)
+target_link_libraries(absorbing material)
+
 add_library(sphere sphere.h sphere.cpp)
-target_link_libraries(sphere vec3 ray hittable)
+target_link_libraries(sphere vec3 ray hittable material absorbing)
 add_executable(sphere_test sphere_test.cpp)
-target_link_libraries(sphere_test PRIVATE project_warnings project_options sphere CONAN_PKG::catch2)
+target_link_libraries(sphere_test PRIVATE project_warnings project_options
+        sphere
+        CONAN_PKG::catch2 CONAN_PKG::trompeloeil)
 
 add_library(hittable_list hittable_list.h hittable_list.cpp)
 target_link_libraries(hittable_list ray)
@@ -41,10 +51,14 @@ target_link_libraries(hittable_list_test PRIVATE
         CONAN_PKG::catch2 CONAN_PKG::trompeloeil)
 
 add_library(random random.cpp random.h)
+target_link_libraries(random vec3)
 
 add_library(camera camera.cpp camera.h)
 add_executable(camera_test camera_test.cpp)
 target_link_libraries(camera_test PRIVATE project_warnings project_options camera CONAN_PKG::catch2)
+
+add_library(lambertian lambertian.cpp lambertian.h)
+target_link_libraries(lambertian material random)
 
 add_executable(RayTracerCpp main.cpp)
 target_link_libraries(
@@ -53,11 +67,12 @@ target_link_libraries(
         camera
         hittable_list
         image
+        lambertian
         random
         ray
         sphere
-        vec3
         tqdm
+        vec3
         project_warnings
         CONAN_PKG::abseil
         CONAN_PKG::fmt

@@ -80,6 +80,19 @@ TEST_CASE("Vec3 *= by scalar returns scaled vector", "[vec3]") {
     REQUIRE(test_obj[2] == 30.0f);
 }
 
+TEST_CASE("Vec3 *= by vector returns vector multiplication", "[vec3]") {
+    Vec3 a{1.0f, 2.0f, 3.0f};
+    Vec3 b{1.0f, 10.0f, 100.0f};
+    a *= b;
+    REQUIRE(a == Vec3{1.0f, 20.0f, 300.0f});
+}
+
+TEST_CASE("Vec3 * by vector returns vector multiplication", "[vec3]") {
+    Vec3 a{1.0f, 2.0f, 3.0f};
+    Vec3 b{1.0f, 10.0f, 100.0f};
+    REQUIRE(a * b == Vec3{1.0f, 20.0f, 300.0f});
+}
+
 TEST_CASE("Vec3 divide by scalar returns scaled vector", "[vec3]") {
     Vec3 a{1.0f, 2.0f, 3.0f};
     auto test_obj = a / 10.0f;

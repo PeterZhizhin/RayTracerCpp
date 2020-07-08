@@ -25,7 +25,7 @@ namespace ray_tracer::geometry {
                 if (t_min <= result_t && result_t <= t_max) {
                     auto hit_point = ray.at(result_t);
                     auto normal_at_hit = (hit_point - center_).unit();
-                    return Sphere::HitRecord{hit_point, ray, result_t, normal_at_hit};
+                    return Sphere::HitRecord{hit_point, ray, result_t, normal_at_hit, material_.get()};
                 }
             }
         }

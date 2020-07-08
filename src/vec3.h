@@ -65,6 +65,13 @@ namespace ray_tracer::vector {
             return *this;
         }
 
+        constexpr Vec3Template &operator*=(const Vec3Template<Float>& other) noexcept {
+            for (size_t i = 0; i != size_; ++i) {
+                data_[i] *= other.data_[i];
+            }
+            return *this;
+        }
+
         constexpr Vec3Template &operator/=(const Float divisor) noexcept {
             for (size_t i = 0; i != size_; ++i) {
                 data_[i] /= divisor;
@@ -123,6 +130,12 @@ namespace ray_tracer::vector {
     [[nodiscard]] constexpr auto operator-(const Vec3Template<Float> &a, const Vec3Template<Float> &b) noexcept {
         Vec3Template<Float> result{a};
         return result -= b;
+    }
+
+    template<typename Float>
+    [[nodiscard]] constexpr auto operator*(const Vec3Template<Float> &a, const Vec3Template<Float> &b) noexcept {
+        Vec3Template<Float> result{a};
+        return result *= b;
     }
 
     template<typename Float>
