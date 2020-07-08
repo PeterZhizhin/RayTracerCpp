@@ -19,6 +19,7 @@
 #include "sphere.h"
 #include "vec3.h"
 #include "lambertian.h"
+#include "reflectable.h"
 
 ABSL_FLAG(std::string, file, "output.ppm", "Output file path");
 ABSL_FLAG(uint32_t, width, 256, "Output image width");
@@ -36,6 +37,7 @@ using ray_tracer::vector::Vec3;
 using ray_tracer::camera::Camera;
 using ray_tracer::random::Random;
 using ray_tracer::material::LambertianMaterial;
+using ray_tracer::material::ReflectableMaterial;
 
 [[nodiscard]] Color3
 get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const uint32_t depth_quota) noexcept {
@@ -69,11 +71,18 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
     Random random;
 
     HittableList hittable_list;
+    // Lambertian spheres
     hittable_list.add(
             std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f,
                                      std::make_unique<LambertianMaterial>(Color3{0.8f, 0.0f, 0.0f}, random)));
     hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f,
                                                std::make_unique<LambertianMaterial>(Color3{0.8f, 0.8f, 0.0f}, random)));
+
+    // Reflectable spheres (glass)
+    hittable_list.add(std::make_unique<Sphere>(Point3{1.0f, 0.0f, -1.0f}, 0.5f,
+                                               std::make_unique<ReflectableMaterial>(Color3{0.8f, 0.6f, 0.2f})));
+    hittable_list.add(std::make_unique<Sphere>(Point3{-1.0f, 0.0f, -1.0f}, 0.5f,
+                                               std::make_unique<ReflectableMaterial>(Color3{0.8f, 0.8f, 0.8f})));
 
     tqdm::tqdm bar;
     for (uint32_t height = 0; height != image_height; ++height) {

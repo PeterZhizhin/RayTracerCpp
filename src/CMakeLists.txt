@@ -75,6 +75,7 @@ target_link_libraries(
         lambertian
         random
         ray
+        reflectable
         sphere
         tqdm
         vec3
