@@ -6,6 +6,7 @@
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <string>
+#include <utility>
 
 #include "tqdm/tqdm.h"
 
@@ -34,6 +35,19 @@ using ray_tracer::vector::Vec3;
 using ray_tracer::camera::Camera;
 using ray_tracer::random::Random;
 
+constexpr auto lambertian_reflectance(const Vec3 &normal_at_hit, const Vec3 &random_on_unit_sphere) {
+    auto target_direction = normal_at_hit + random_on_unit_sphere;
+    // color_multiplier = <target / target.length(); normal> = <target; normal> / target.length() =
+    // = <normal + random; normal> / target.length() = (<normal; normal> + <random; normal>) / target.length() =
+    // = [normal.length() == 1, target.length() == sqrt(<target; target>)] =
+    // = (1 + <random; normal>) / sqrt(<normal + random; normal + random>) =
+    // = (1 + <random; normal>) / sqrt(<normal; normal> + 2<normal; random> + <random; random>) =
+    // = [random.length() == 1] = (1 + <random; normal>) / sqrt(1 + 2<normal; random> + 1) =
+    // = (1 + <random; normal>) / sqrt(2) / sqrt(1 + <random; normal>) = sqrt((1 + <random; normal>) / 2)
+    auto color_multiplier = std::sqrt((1 + random_on_unit_sphere.dot_product(normal_at_hit)) / 2.0f);
+    return std::make_pair(target_direction, color_multiplier);
+}
+
 [[nodiscard]] Color3
 get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const uint32_t depth_quota) noexcept {
     if (depth_quota == 0) {
@@ -44,10 +58,11 @@ get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const ui
     auto hit_or_none = hittable.hit(ray, 1e-4f, 100);
     if (hit_or_none) {
         const auto &hit_record = hit_or_none.value();
-        auto random_unit_sphere = random.unit_sphere_uniform();
-        auto target = hit_record.hit_point + hit_record.normal_at_hit + random_unit_sphere;
-        return 0.5f * get_ray_color(Ray{hit_record.hit_point, target - hit_record.hit_point}, hittable, random,
-                                    depth_quota - 1);
+        auto[target_direction, color_multiplier] = lambertian_reflectance(hit_record.normal_at_hit,
+                                                                          random.on_unit_sphere_uniform());
+        Ray target_ray{hit_record.hit_point, target_direction};
+        return color_multiplier * get_ray_color(target_ray, hittable, random,
+                                                depth_quota - 1);
     }
     const auto unit_ray_direction = ray.direction().unit();
     const auto t = 0.5f * (unit_ray_direction.y() + 1.0f);

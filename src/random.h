@@ -9,7 +9,8 @@ namespace ray_tracer::random {
     public:
         [[nodiscard]] float uniform(float min, float max) noexcept;
         [[nodiscard]] float standard_uniform() noexcept;
-        [[nodiscard]] vector::Vec3 unit_sphere_uniform() noexcept;
+        [[nodiscard]] vector::Vec3 in_unit_sphere_uniform() noexcept;
+        [[nodiscard]] vector::Vec3 on_unit_sphere_uniform() noexcept;
     private:
         std::mt19937 generator_;
     };
