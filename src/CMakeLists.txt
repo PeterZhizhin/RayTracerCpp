@@ -60,6 +60,11 @@ target_link_libraries(camera_test PRIVATE project_warnings project_options camer
 add_library(lambertian lambertian.cpp lambertian.h)
 target_link_libraries(lambertian material random)
 
+add_library(reflectable reflectable.cpp reflectable.h)
+target_link_libraries(lambertian material vec3 hittable ray)
+add_executable(reflectable_test reflectable_test.cpp)
+target_link_libraries(reflectable_test PRIVATE project_warnings project_options reflectable CONAN_PKG::catch2)
+
 add_executable(RayTracerCpp main.cpp)
 target_link_libraries(
         RayTracerCpp
