@@ -14,6 +14,10 @@ namespace ray_tracer::random {
         return uniform(0.0f, 1.0f);
     }
 
+    [[nodiscard]] bool Random::with_prob(float prob) noexcept {
+        return standard_uniform() < prob;
+    }
+
     [[nodiscard]] vector::Vec3 Random::in_unit_sphere_uniform() noexcept {
         auto cube_proposal = [this]() -> vector::Vec3 {
             auto uniform_m11 = [this]() {

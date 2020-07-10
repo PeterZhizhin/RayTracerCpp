@@ -27,7 +27,7 @@ set_target_properties(material PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(hittable hittable.h)
 set_target_properties(hittable PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(material hittable vec3 ray)
+target_link_libraries(material vec3 ray hittable)
 target_link_libraries(hittable vec3 ray material)
 
 add_executable(hittable_test hittable_test.cpp)
@@ -55,6 +55,7 @@ add_library(random random.cpp random.h)
 target_link_libraries(random vec3)
 
 add_library(camera camera.cpp camera.h)
+target_link_libraries(camera vec3 ray)
 add_executable(camera_test camera_test.cpp)
 target_link_libraries(camera_test PRIVATE project_warnings project_options camera CONAN_PKG::catch2)
 
@@ -62,9 +63,14 @@ add_library(lambertian lambertian.cpp lambertian.h)
 target_link_libraries(lambertian material random)
 
 add_library(reflectable reflectable.cpp reflectable.h)
-target_link_libraries(lambertian material vec3 hittable ray)
+target_link_libraries(reflectable material vec3 hittable ray)
 add_executable(reflectable_test reflectable_test.cpp)
 target_link_libraries(reflectable_test PRIVATE project_warnings project_options reflectable CONAN_PKG::catch2)
+
+add_library(refractive refractive.cpp refractive.h)
+target_link_libraries(refractive material random hittable ray vec3 reflectable)
+add_executable(refractive_test refractive_test.cpp)
+target_link_libraries(refractive_test PRIVATE project_warnings project_options refractive CONAN_PKG::catch2)
 
 add_executable(RayTracerCpp main.cpp)
 target_link_libraries(
@@ -77,6 +83,7 @@ target_link_libraries(
         random
         ray
         reflectable
+        refractive
         sphere
         tqdm
         vec3
