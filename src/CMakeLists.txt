@@ -12,6 +12,7 @@ target_link_libraries(image CONAN_PKG::fmt CONAN_PKG::stb)
 
 add_library(vec3 vec3.h)
 set_target_properties(vec3 PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(vec3 CONAN_PKG::fmt)
 add_executable(vec3_test vec3_test.cpp)
 target_link_libraries(vec3_test PRIVATE project_warnings project_options vec3 CONAN_PKG::catch2)
 

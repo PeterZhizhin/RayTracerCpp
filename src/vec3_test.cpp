@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_MAIN // This tells the catch header to generate a main
 
+#include <sstream>
 #include <catch2/catch.hpp>
 #include <cmath>
 #include "vec3.h"
@@ -164,4 +165,11 @@ TEST_CASE("Vec3 same vectors operator != returns false", "[vec3]") {
     Vec3 a{1.0f, -1.0f, 1.0f};
     Vec3 b{1.0f, -1.0f, 1.0f};
     REQUIRE_FALSE(a != b);
+}
+
+TEST_CASE("Vec3 outputs to ostream as expected", "[vec3]") {
+    std::ostringstream output;
+    Vec3 a{1.0f, 10.0f, 1.0f};
+    output << a;
+    REQUIRE(output.str() == "[1.0; 10.0; 1.0]");
 }

@@ -5,11 +5,14 @@
 #ifndef RAYTRACERPROJECT_VEC3_H
 #define RAYTRACERPROJECT_VEC3_H
 
+#include <algorithm>
 #include <array>
 #include <cmath>
-#include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <ostream>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 namespace ray_tracer::vector {
 
@@ -154,6 +157,12 @@ namespace ray_tracer::vector {
     [[nodiscard]] constexpr auto operator/(const Vec3Template<Float> &a, const Float b) noexcept {
         Vec3Template<Float> result{a};
         return result /= b;
+    }
+
+    template <typename Float>
+    std::ostream& operator<<(std::ostream& os, const Vec3Template<Float>& a) noexcept {
+        fmt::print(os, "[{}; {}; {}]", a.x(), a.y(), a.z());
+        return os;
     }
 
     using Vec3 = Vec3Template<float>;
