@@ -72,20 +72,14 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
     Camera camera(image_width, image_height);
     Random random;
 
+    const auto radius = static_cast<float>(std::cos(M_PI_4));
     HittableList hittable_list;
-    // Lambertian spheres
     hittable_list.add(
-            std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f,
-                                     std::make_unique<LambertianMaterial>(Color3{0.1f, 0.2f, 0.5f}, random)));
-    hittable_list.add(std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f,
-                                               std::make_unique<LambertianMaterial>(Color3{0.8f, 0.8f, 0.0f}, random)));
-
-    // Reflectable spheres (glass)
-    hittable_list.add(std::make_unique<Sphere>(Point3{1.0f, 0.0f, -1.0f}, 0.5f,
-                                               std::make_unique<ReflectableMaterial>(Color3{0.8f, 0.6f, 0.2f})));
-    hittable_list.add(std::make_unique<Sphere>(Point3{-1.0f, 0.0f, -1.0f}, 0.5f,
-                                               std::make_unique<RefractiveMaterial>(
-                                                       1.5, random)));
+            std::make_unique<Sphere>(Point3{-radius, 0.0f, -1.0f}, radius,
+                                     std::make_unique<LambertianMaterial>(Color3{0.0f, 0.0f, 1.0f}, random)));
+    hittable_list.add(
+            std::make_unique<Sphere>(Point3{radius, 0.0f, -1.0f}, radius,
+                                     std::make_unique<LambertianMaterial>(Color3{1.0f, 0.0f, 0.0f}, random)));
 
     tqdm::tqdm bar;
     for (uint32_t height = 0; height != image_height; ++height) {
