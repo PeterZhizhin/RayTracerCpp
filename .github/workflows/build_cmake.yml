@@ -28,6 +28,8 @@ jobs:
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install conan
         source ~/.profile
+        conan profile update settings.compiler.libcxx=libstdc++11
+        cat ~/.conan/profiles/default
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
