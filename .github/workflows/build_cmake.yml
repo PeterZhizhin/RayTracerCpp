@@ -28,6 +28,7 @@ jobs:
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install conan
         source ~/.profile
+        conan profile new default --detect
         conan profile update settings.compiler.libcxx=libstdc++11 default
         cat ~/.conan/profiles/default
 
