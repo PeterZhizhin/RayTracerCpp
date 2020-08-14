@@ -118,6 +118,13 @@ namespace ray_tracer::vector {
             return *this / length();
         }
 
+        [[nodiscard]] constexpr Vec3Template cross(const Vec3Template& other) const noexcept {
+            auto cx = y() * other.z() - z() * other.y();
+            auto cy = -x() * other.z() + z() * other.x();
+            auto cz = x() * other.y() - y() * other.x();
+            return {cx, cy, cz};
+        }
+
     private:
         std::array<Float, 3> data_;
         inline static constexpr size_t size_ = 3;

@@ -117,6 +117,18 @@ TEST_CASE("Vec3 dot product returns expected dot product", "[vec3]") {
     REQUIRE(a.dot_product(b) == 123.0f);
 }
 
+TEST_CASE("Vec3 cross product of (1, 0, 0) and (0, 1, 0) returns expected (0, 0, 1)", "[vec3]") {
+    Vec3 a{1.0f, 0.0f, 0.0f};
+    Vec3 b{0.0f, 1.0f, 0.0f};
+    REQUIRE(a.cross(b) == Vec3{0.0f, 0.0f, 1.0f});
+}
+
+TEST_CASE("Vec3 cross product of (3, -3, 1) and (4, 9, 2) returns expected (-15, -2, 39)", "[vec3]") {
+    Vec3 a{3.0f, -3.0f, 1.0f};
+    Vec3 b{4.0f, 9.0f, 2.0f};
+    REQUIRE(a.cross(b) == Vec3{-15.0f, -2.0f, 39.0f});
+}
+
 TEST_CASE("Vec3 length2 returns squared length", "[vec3]") {
     Vec3 a{100.0f, 10.0f, 1.0f};
     REQUIRE(a.length2() == 10101.0f);

@@ -14,23 +14,27 @@
 namespace ray_tracer::camera {
     class Camera {
     public:
-        Camera(uint32_t width, uint32_t height, float focal_length = 1.0f,
-               float vertical_field_of_view = static_cast<float>(M_PI_2))
-                : origin_{} {
+        Camera(uint32_t width, uint32_t height,
+               float vertical_field_of_view = static_cast<float>(M_PI_2),
+               vector::Point3 lookfrom = vector::Point3{},
+               vector::Point3 lookat = vector::Point3{0.0f, 0.0f, -1.0f},
+               vector::Vec3 vector_up = vector::Vec3{0.0f, 1.0f, 0.0f})
+                : origin_{lookfrom} {
             auto aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
             auto h = std::tan(vertical_field_of_view / 2.0f);
             auto viewport_height = 2 * h;
             auto viewport_width = aspect_ratio * viewport_height;
 
-            horizontal_ = {viewport_width, 0.0f, 0.0f};
-            vertical_ = {0.0f, viewport_height, 0.0f};
-            lower_left_corner_ = {
-                    origin_ -
-                    horizontal_ / 2.0f - vertical_ / 2.0f -
-                    vector::Vec3{0.0f, 0.0f, focal_length}};
+            auto w = (lookfrom - lookat).unit();
+            auto u = vector_up.cross(w).unit();
+            auto v = w.cross(u);
+
+            horizontal_ = viewport_width * u;
+            vertical_ = viewport_height * v;
+            lower_left_corner_ = -horizontal_ / 2.0f - vertical_ / 2.0f - w;
         }
 
-        ray::Ray get_ray(float u, float v);
+        [[nodiscard]] ray::Ray get_ray(float u, float v) const noexcept;
 
     private:
         vector::Point3 origin_;

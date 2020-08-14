@@ -17,28 +17,40 @@ TEST_CASE("Camera get ray returns origin (0 0 0)", "[camera]") {
 }
 
 TEST_CASE("Camera get ray at (0.5 0.5) returns ray directed as (0 0 -focal_len)", "[camera]") {
-    Camera camera{16, 9, /* focal_length = */ 1337.0f};
+    Camera camera{16, 9,
+            /* vertical_field_of_view = */ static_cast<float>(M_PI_2),
+            /* lookfrom = */ {},
+            /* lookat = */ {0.0f, 0.0f, -1.0f},
+            /* vector_up = */ {0.0f, 1.0f, 0.0f}};
     auto ray = camera.get_ray(0.5f, 0.5f);
-    REQUIRE(ray.direction() == Point3{0.0f, 0.0f, -1337.0f});
+    REQUIRE(ray.direction() == Point3{0.0f, 0.0f, -1.0f});
 }
 
 TEST_CASE("Camera get ray at (1 1) returns ray directed as (16 / 9; 1; -focal_len) when vfov == 90deg",
           "[camera]") {
-    Camera camera{16, 9, /* focal_length = */ 1337.0f, /* vertical_field_of_view = */ static_cast<float>(M_PI_2)};
+    Camera camera{16, 9,
+            /* vertical_field_of_view = */ static_cast<float>(M_PI_2),
+            /* lookfrom = */ {},
+            /* lookat = */ {0.0f, 0.0f, -1.0f},
+            /* vector_up = */ {0.0f, 1.0f, 0.0f}};
     auto ray = camera.get_ray(1.0f, 1.0f);
-    REQUIRE(ray.direction() == Point3{1.0f * 16.0f / 9.0f, 1.0f, -1337.0f});
+    REQUIRE(ray.direction() == Point3{16.0f / 9.0f, 1.0f, -1.0f});
 }
 
 TEST_CASE("Camera get ray at (0.5 1) returns ray directed as (0; 1; -focal_len) when vfov == 90deg",
           "[camera]") {
-    Camera camera{16, 9, /* focal_length = */ 1337.0f, /* vertical_field_of_view = */ static_cast<float>(M_PI_2)};
+    Camera camera{16, 9,
+            /* vertical_field_of_view = */ static_cast<float>(M_PI_2),
+            /* lookfrom = */ {},
+            /* lookat = */ {0.0f, 0.0f, -1.0f},
+            /* vector_up = */ {0.0f, 1.0f, 0.0f}};
     auto ray = camera.get_ray(0.5f, 1.0f);
-    REQUIRE(ray.direction() == Point3{0.0f, 1.0f, -1337.0f});
+    REQUIRE(ray.direction() == Point3{0.0f, 1.0f, -1.0f});
 }
 
 TEST_CASE("Camera get ray at (1 0.5) returns ray directed as (16 / 9; 0; -focal_len) when vfov == 90",
           "[camera]") {
-    Camera camera{16, 9, /* focal_length = */ 1337.0f, /* vertical_field_of_view = */ static_cast<float>(M_PI_2)};
+    Camera camera{16, 9, /* vertical_field_of_view = */ static_cast<float>(M_PI_2)};
     auto ray = camera.get_ray(1.0f, 0.5f);
-    REQUIRE(ray.direction() == Point3{16.0f / 9.0f, 0.0f, -1337.0f});
+    REQUIRE(ray.direction() == Point3{16.0f / 9.0f, 0.0f, -1.0f});
 }
