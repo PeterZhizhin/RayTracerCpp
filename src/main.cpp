@@ -64,36 +64,69 @@ get_ray_color(const Ray &ray, const Hittable &hittable, Random &random, const ui
     return (1.0f - t) * Color3{1.0f, 1.0f, 1.0f} + t * Color3{0.5f, 0.7f, 1.0f};
 }
 
+HittableList create_world(Random &random) {
+    HittableList world;
+
+    world.add(std::make_unique<Sphere>(
+            Point3{0.0f, -1000.0f, 0.0f}, 1000.0f,
+            std::make_unique<LambertianMaterial>(Color3{0.5f, 0.5f, 0.5f}, random)));
+
+    for (int a = -11; a <= 11; ++a) {
+        for (int b = -11; b <= 11; ++b) {
+            Point3 center{static_cast<float>(a) + 0.9f * random.standard_uniform(),
+                          0.2f,
+                          static_cast<float>(b) + 0.9f * random.standard_uniform()};
+            if ((center - Point3{4.0f, 0.2f, 0.0f}).length() > 0.9f) {
+                auto decision_variable = random.standard_uniform();
+                if (decision_variable < 0.8f) {
+                    // Diffuse material
+                    auto albedo = random.in_cube() * random.in_cube();
+                    world.add(std::make_unique<Sphere>(center, 0.2f,
+                                                       std::make_unique<LambertianMaterial>(albedo, random)));
+                } else if (decision_variable < 0.95f) {
+                    // Reflecting material
+                    auto albedo = random.in_cube(0.5f, 1.0f);
+                    world.add(std::make_unique<Sphere>(center, 0.2f,
+                                                       std::make_unique<ReflectableMaterial>(albedo)));
+                } else {
+                    // Refractive material
+                    world.add(std::make_unique<Sphere>(center, 0.2f,
+                                                       std::make_unique<RefractiveMaterial>(1.5f, random)));
+                }
+            }
+        }
+    }
+
+    world.add(
+            std::make_unique<Sphere>(
+                    Point3{0.0f, 1.0f, 0.0f}, 1.0f,
+                    std::make_unique<RefractiveMaterial>(1.5f, random)));
+    world.add(std::make_unique<Sphere>(
+            Point3{-4.0f, 1.0f, 0.0f}, 1.0f,
+            std::make_unique<LambertianMaterial>(Color3{0.4f, 0.2f, 0.1f}, random)));
+    world.add(
+            std::make_unique<Sphere>(
+                    Point3{4.0f, 1.0f, 0.0f}, 1.0f,
+                    std::make_unique<ReflectableMaterial>(Color3{0.7f, 0.6f, 0.5f})));
+
+    return world;
+}
+
 [[nodiscard]] auto
-get_simple_image(const uint32_t image_width, const uint32_t image_height, const uint32_t rays_per_pixel,
+get_image(const uint32_t image_width, const uint32_t image_height, const uint32_t rays_per_pixel,
                  const uint32_t max_ray_tracing_depth) noexcept {
     ray_tracer::Image result(image_height, image_width);
 
     Random random;
-    Point3 lookfrom{3.0f, 3.0f, 2.0f};
-    Point3 lookat{0.0f, 0.0f, -1.0f};
+    Point3 lookfrom{13.0f, 2.0f, 3.0f};
+    Point3 lookat{0.0f, 0.0f, 0.0f};
     Vec3 vup{0.0f, 1.0f, 0.0f};
-    float focus_distance{(lookfrom - lookat).length()};
-    float aperture{2.0f};
+    float focus_distance{10.0f};
+    float aperture{0.1f};
     Camera camera{image_width, image_height, random, static_cast<float>(M_PI_2 / 9 * 2),
                   lookfrom, lookat, vup, aperture, focus_distance};
 
-    HittableList hittable_list;
-    hittable_list.add(
-            std::make_unique<Sphere>(Point3{0.0f, -100.5f, -1.0f}, 100.0f,
-                                     std::make_unique<LambertianMaterial>(Color3{0.8f, 0.8f, 0.0f}, random)));
-    hittable_list.add(
-            std::make_unique<Sphere>(Point3{0.0f, 0.0f, -1.0f}, 0.5f,
-                                     std::make_unique<LambertianMaterial>(Color3{0.1f, 0.2f, 0.5f}, random)));
-    hittable_list.add(
-            std::make_unique<Sphere>(Point3{-1.0f, 0.0f, -1.0f}, 0.5f,
-                                     std::make_unique<RefractiveMaterial>(1.5f, random)));
-    hittable_list.add(
-            std::make_unique<Sphere>(Point3{-1.0f, 0.0f, -1.0f}, 0.45f,
-                                     std::make_unique<RefractiveMaterial>(1.0f / 1.5f, random)));
-    hittable_list.add(
-            std::make_unique<Sphere>(Point3{1.0f, 0.0f, -1.0f}, 0.5f,
-                                     std::make_unique<ReflectableMaterial>(Color3{0.8f, 0.6f, 0.2f})));
+    auto world = create_world(random);
 
     tqdm::tqdm bar;
     for (uint32_t height = 0; height != image_height; ++height) {
@@ -106,7 +139,7 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
                         image_height - 1);
 
                 auto uv_ray = camera.get_ray(u, v);
-                colors_sum += get_ray_color(uv_ray, hittable_list, random, max_ray_tracing_depth);
+                colors_sum += get_ray_color(uv_ray, world, random, max_ray_tracing_depth);
             }
             auto non_gamma_corrected = colors_sum / static_cast<float>(rays_per_pixel);
             Color3 gamma_corrected{std::sqrt(non_gamma_corrected.x()), std::sqrt(non_gamma_corrected.y()),
@@ -144,7 +177,7 @@ int main(int argc, char *argv[]) {
     }
 
     try {
-        auto image = get_simple_image(width, height, rays_per_pixel, max_ray_tracing_depth);
+        auto image = get_image(width, height, rays_per_pixel, max_ray_tracing_depth);
         image.save_image(output_file_path, ray_tracer::OutputFormat::PNG);
     } catch (const std::exception &exception) {
         spdlog::error("Error on saving image:\n{}\n", exception.what());

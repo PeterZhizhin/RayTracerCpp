@@ -12,6 +12,9 @@ namespace ray_tracer::geometry {
     public:
         using HitRecord = Hittable::HitRecord;
 
+        HittableList() = default;
+        HittableList(HittableList&&) = default;
+
         void add(std::unique_ptr<Hittable> hittable) noexcept;
 
         [[nodiscard]] std::optional<HitRecord>

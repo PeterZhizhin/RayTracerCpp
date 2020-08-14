@@ -18,15 +18,17 @@ namespace ray_tracer::random {
         return standard_uniform() < prob;
     }
 
+    [[nodiscard]] vector::Vec3 Random::in_cube(float min, float max) noexcept {
+        return {uniform(min, max), uniform(min, max), uniform(min, max)};
+    }
+
+    [[nodiscard]] vector::Vec3 Random::in_cube() noexcept {
+        return in_cube(0.0f, 1.0f);
+    }
+
     [[nodiscard]] vector::Vec3 Random::in_unit_sphere_uniform() noexcept {
-        auto cube_proposal = [this]() -> vector::Vec3 {
-            auto uniform_m11 = [this]() {
-                return uniform(-1.0f, 1.0f);
-            };
-            return {uniform_m11(), uniform_m11(), uniform_m11()};
-        };
         while (true) {
-            auto proposed = cube_proposal();
+            auto proposed = in_cube(-1.0f, 1.0f);
             if (proposed.length2() <= 1.0f) {
                 return proposed;
             }
