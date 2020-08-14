@@ -60,7 +60,7 @@ add_library(random random.cpp random.h)
 target_link_libraries(random vec3)
 
 add_library(camera camera.cpp camera.h)
-target_link_libraries(camera vec3 ray)
+target_link_libraries(camera vec3 ray random)
 add_executable(camera_test camera_test.cpp)
 target_link_libraries(camera_test PRIVATE project_warnings project_options camera CONAN_PKG::catch2)
 catch_discover_tests(camera_test)

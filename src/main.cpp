@@ -69,10 +69,14 @@ get_simple_image(const uint32_t image_width, const uint32_t image_height, const 
                  const uint32_t max_ray_tracing_depth) noexcept {
     ray_tracer::Image result(image_height, image_width);
 
-    Camera camera(image_width, image_height, static_cast<float>(M_PI_2 / 9 * 2),
-                  Point3{-2.0f, 2.0f, 0.0f},
-                  Point3{-0.0f, 0.0f, -1.0f}, Vec3{0.0f, 1.0f, 0.0f});
     Random random;
+    Point3 lookfrom{3.0f, 3.0f, 2.0f};
+    Point3 lookat{0.0f, 0.0f, -1.0f};
+    Vec3 vup{0.0f, 1.0f, 0.0f};
+    float focus_distance{(lookfrom - lookat).length()};
+    float aperture{2.0f};
+    Camera camera{image_width, image_height, random, static_cast<float>(M_PI_2 / 9 * 2),
+                  lookfrom, lookat, vup, aperture, focus_distance};
 
     HittableList hittable_list;
     hittable_list.add(

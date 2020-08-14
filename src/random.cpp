@@ -40,4 +40,16 @@ namespace ray_tracer::random {
         auto z_radius = std::sqrt(1.0f - z_coord * z_coord);
         return {z_radius * std::cos(angle), z_radius * std::sin(angle), z_coord};
     }
+
+    [[nodiscard]] vector::Vec3 Random::in_unit_disk_uniform() noexcept {
+        auto square_proposal = [this]() -> vector::Vec3 {
+            return {standard_uniform(), standard_uniform(), 0.0f};
+        };
+        while (true) {
+            auto proposal = square_proposal();
+            if (proposal.length2() <= 1) {
+                return proposal;
+            }
+        }
+    }
 }

@@ -12,6 +12,7 @@ namespace ray_tracer::random {
         [[nodiscard]] bool with_prob(float prob) noexcept;
         [[nodiscard]] vector::Vec3 in_unit_sphere_uniform() noexcept;
         [[nodiscard]] vector::Vec3 on_unit_sphere_uniform() noexcept;
+        [[nodiscard]] vector::Vec3 in_unit_disk_uniform() noexcept;
     private:
         std::mt19937 generator_;
     };
